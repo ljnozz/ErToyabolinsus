@@ -1,0 +1,5 @@
+suites:
+    main:
+        namespace: API_Medico
+        psr4_prefix: API_Medico
+        src_path: app

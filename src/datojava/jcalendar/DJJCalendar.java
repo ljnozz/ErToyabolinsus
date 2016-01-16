@@ -18,10 +18,12 @@ public class DJJCalendar {
 
 private int i = 0;    
     
-public static List<Calendar> fechasOcupadas() {  
- List<Calendar> fechasOcupadas = new ArrayList<Calendar>();  
-        
 
+
+public static List<Calendar> fechasOcupadas() {  
+        
+    
+        List<Calendar> fechasOcupadas = new ArrayList<Calendar>();  
         Calendar calendar = new GregorianCalendar(2015, Calendar.SEPTEMBER, 10);  
         fechasOcupadas.add(calendar);  
         calendar = new GregorianCalendar(2015, Calendar.DECEMBER, 11);  
@@ -30,8 +32,7 @@ public static List<Calendar> fechasOcupadas() {
         fechasOcupadas.add(calendar);  
 
         return fechasOcupadas;  
-    }  
-
+    }
 
 
 

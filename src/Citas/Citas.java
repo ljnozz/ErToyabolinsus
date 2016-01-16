@@ -19,6 +19,15 @@ String Paciente;
 String Cedula;
 String Dia;
 
+    public Citas(String noCita, String hora){
+        this.Hora=hora;
+        this.setText(noCita);
+        System.out.println("Esta es la hora: "+Hora);
+        
+    }
+    
+
+
     public Citas(String Hora, String Paciente, String Dia) {
         this.Hora = Hora;
         this.Paciente = Paciente;
@@ -54,6 +63,10 @@ String Dia;
                         break;
         }
         
+    }
+
+    public String getHora() {
+        return Hora;
     }
 
     Citas() {

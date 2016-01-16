@@ -25,29 +25,38 @@ import org.json.JSONObject;
  *
  * @author Rafael
  */
-public class TestLeer {
-    public static void main(String[] args) throws ClientProtocolException, IOException, JSONException {
-  HttpClient client = new DefaultHttpClient();
-  int id=1;
+public class Leer {
+
+
+
+    
+    
+    
+public JSONArray leer(String ruta) throws ClientProtocolException, IOException, JSONException {
+        
+        HttpClient client = new DefaultHttpClient();
+     int id=1;
  // HttpGet get = new HttpGet("http://ip.no-ip.org:8000/ruta");
-    HttpGet get = new HttpGet("http://localhost/API_Medico/public/Citas");
+    HttpGet get = new HttpGet(ruta);
   
- HttpResponse response = client.execute(get);
-  HttpEntity entity= response.getEntity();
-  String content = EntityUtils.toString(entity);
+    HttpResponse response = client.execute(get);
+    HttpEntity entity= response.getEntity();
+    String content = EntityUtils.toString(entity);
+    System.out.println("ESTE ES EL JSON en LEER " + content);
   
-  System.out.println(response.toString());
- 
-   System.out.println(content);
    JSONArray json = new JSONArray(content);
    
-   System.out.println(json);
-/*   
-  BufferedReader rd = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
-  String line = "";
-  while ((line = rd.readLine()) != null) {
-   System.out.println(line);
-  }
-  */
+   
+        return json;
+   }
+
+
+    
+    
+    
+    
+  public static void main(String[] args) throws IOException, ClientProtocolException, JSONException {
+    
+//System.out.println(Leer("http://localhost/API_Medico/API_Medico/public/Citas/porFecha/2015-12-12"));
  }
 }

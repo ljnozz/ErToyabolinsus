@@ -18,6 +18,7 @@ int horaInicio;
 int minInicio;
 int MAXhorasDeAtencionxdia;
 int minutosDeAtencionxPaciente;
+int citasPorDia;
     
     public Medico(int horaInicio, int minInicio, int MAXhorasDeAtencionxdia, int minutosDeAtencionxPaciente){
         
@@ -25,6 +26,7 @@ int minutosDeAtencionxPaciente;
         this.minInicio=minInicio;
         this.MAXhorasDeAtencionxdia=MAXhorasDeAtencionxdia;
         this.minutosDeAtencionxPaciente=minutosDeAtencionxPaciente;
+        this.citasPorDia=cantidadDeCitasxDia(MAXhorasDeAtencionxdia,minutosDeAtencionxPaciente);
         
     }
 
@@ -43,12 +45,11 @@ int minutosDeAtencionxPaciente;
     public int getMinutosDeAtencionxPaciente() {
         return minutosDeAtencionxPaciente;
     }
-    
-    
-    
-    
-    
-    
+
+    public int getCitasPorDia() {
+        return citasPorDia;
+    }
+
     
         
     public int cantidadDeCitasxDia (int MAXhorasDeAtencionxdia, int minutosDeAtencionxPaciente){

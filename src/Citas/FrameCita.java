@@ -5,6 +5,7 @@
  */
 package Citas;
 
+import Services.Add;
 import datojava.jcalendar.DJFechasEspInv;
 import java.awt.Color;
 import java.awt.FlowLayout;
@@ -17,8 +18,6 @@ import java.awt.event.MouseListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -27,7 +26,20 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import medical.Medico;
-import org.json.simple.*;
+import Services.Leer;
+import java.awt.Font;
+import java.awt.FontFormatException;
+import java.io.File;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.JOptionPane;
+import org.apache.http.client.ClientProtocolException;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.json.JSONArray;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 
 /**
@@ -40,11 +52,18 @@ public class FrameCita extends javax.swing.JFrame  implements ActionListener{
      * Creates new form Cita
      */
      
-    ////////////// ELEMENTOS DEL PANEL DETALLE
     
+    //////////////Lecturas y escrituras de la BD
+    Leer rutasLeer;
+    Add rutasAdd;
+    
+    ////////////// ELEMENTOS DEL PANEL DETALLE
+    Font font;
     Color colorTextFields;
     Color colorBackGround;
     Color colorDelPapa;
+    Color colorBotones;
+    Color colorActivo;
     JPanel Botones;
     JPanel BotonAtras;
     JPanel BotonBuscar;
@@ -87,12 +106,12 @@ public class FrameCita extends javax.swing.JFrame  implements ActionListener{
     
     
     JScrollPane scrollPanelCita; //Scroll del panel Cita
-    
-    
+    Leer testl;
+    Add addu;
     
     //Medico en sesion
     Medico medico;
-   JLabel label[];
+    Citas citas[];
     //Para los minutos y horas
     int min;
     int hora;
@@ -101,14 +120,22 @@ public class FrameCita extends javax.swing.JFrame  implements ActionListener{
     ////////////// ELEMENTOS DEL PANEL DETALLE
     
     
-    public FrameCita() {
+    public FrameCita() throws ClientProtocolException, IOException, JSONException {
         
         initComponents();
         this.getContentPane().setLayout(new GridBagLayout());
-       
-        medico = new Medico(2,0,5,30); //MEDICO EN SESIOOON
-        label = new JLabel [medico.cantidadDeCitasxDia(10, 30)];
-  
+        rutasLeer = new Leer();
+        rutasAdd = new Add();
+        medico = new Medico(2,0,3,30); //MEDICO EN SESIOOON
+        citas = new Citas [medico.cantidadDeCitasxDia(10, 30)];
+        
+        try {
+            font = Font.createFont(Font.TRUETYPE_FONT, new File("Sertig.otf"));
+            font  = font.deriveFont(Font.BOLD, 11);
+        } catch (FontFormatException ex) {
+            Logger.getLogger(FrameCita.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
         
         
         GridBagConstraints gbc = new GridBagConstraints();
@@ -142,17 +169,16 @@ public class FrameCita extends javax.swing.JFrame  implements ActionListener{
         gbc.weighty = 1.0;
         this.getContentPane().add(PanelDetalle, gbc); 
         
-        
-        
-
-        
+              
         
         ////////////////// PANEL DETALLES
         
         //Colores
         colorBackGround=new Color(hex("8FA8F6"));//Color de los BackGround 
         colorTextFields = new Color (hex("CDCBA6"));//Color de los JTextFields
-        colorDelPapa = new Color (hex("8BCBDE"));//Color del backgorud del papa
+        colorDelPapa = new Color (hex("2980b9"));//Color del backgorud del papa
+        colorBotones = new Color (hex ("2C3E50"));//Color d elos botonte
+        colorActivo = new Color (hex ("81CFE0"));//Color de los jTextFild cuando los activan
         //Colores
 
         
@@ -177,7 +203,11 @@ public class FrameCita extends javax.swing.JFrame  implements ActionListener{
         
         PanelCita.setLayout(new GridBagLayout());
         
-
+        disenoBotones(modificarB);
+        disenoBotones(eliminarB);
+        disenoBotones(agregarB);
+        disenoBotones(atrasB);
+        disenoBotones(buscarB);
         PanelDetalle.setLayout(new GridBagLayout());          //Panel Papá (PanelDetalle)
         cambiarColorPanel(PanelCalendar,colorDelPapa);
         cambiarColorPanel(PanelCita,colorDelPapa);
@@ -186,16 +216,30 @@ public class FrameCita extends javax.swing.JFrame  implements ActionListener{
         
         //LABELS
         horaCitas = new JLabel();
-        fechaL=new JLabel("<HTML>- Fecha &nbsp</HTML>");
-        horaL=new JLabel("<HTML>- Hora &nbsp</HTML>");
-        nombreL=new JLabel("<HTML>- Nombre &nbsp &nbsp &nbsp &nbsp &nbsp</HTML>");
-        apellidoL=new JLabel("<HTML>- Apellido &nbsp &nbsp &nbsp</HTML>");
-        cedulaL=new JLabel("<HTML>- Cedula &nbsp &nbsp &nbsp &nbsp &nbsp</HTML>");
-        direccionL=new JLabel("<HTML>- Direccion &nbsp &nbsp</HTML>");
-        motivosL=new JLabel("<HTML>- Motivos &nbsp &nbsp &nbsp &nbsp</HTML>");
-        telefonoCasaL=new JLabel("<HTML>- Telefono Casa&nbsp &nbsp &nbsp</HTML>");
-        telefonoCelularL=new JLabel("<HTML>- Telefono Celular</HTML>");
-        correoL=new JLabel("<HTML>- Correo &nbsp &nbsp &nbsp</HTML>");
+        fechaL=new JLabel("<HTML> Fecha &nbsp</HTML>");
+        horaL=new JLabel("<HTML> Hora &nbsp</HTML>");
+        nombreL=new JLabel("<HTML> Nombre &nbsp &nbsp </HTML>");
+        apellidoL=new JLabel("<HTML> Apellido &nbsp &nbsp &nbsp</HTML>");
+        cedulaL=new JLabel("<HTML> Cedula &nbsp &nbsp &nbsp &nbsp &nbsp</HTML>");
+        direccionL=new JLabel("<HTML> Direccion &nbsp &nbsp</HTML>");
+        motivosL=new JLabel("<HTML> Motivos &nbsp &nbsp &nbsp &nbsp</HTML>");
+        telefonoCasaL=new JLabel("<HTML> Tlfn Casa&nbsp </HTML>");
+        telefonoCelularL=new JLabel("<HTML> Tlfn Celular</HTML>");
+        correoL=new JLabel("<HTML> Correo &nbsp &nbsp &nbsp</HTML>");
+        
+        font=font  = font.deriveFont(Font.BOLD, 11);
+        disenoLabel(horaCitas);
+        disenoLabel(fechaL);
+        disenoLabel(horaL);
+        disenoLabel(nombreL);
+        disenoLabel(apellidoL);
+        disenoLabel(cedulaL);
+        disenoLabel(direccionL);
+        disenoLabel(motivosL);
+        disenoLabel(telefonoCasaL);
+        disenoLabel(telefonoCelularL);
+        disenoLabel(correoL);
+        
         
         //JTEXTFIELDS y TEXAREA
         
@@ -210,7 +254,7 @@ public class FrameCita extends javax.swing.JFrame  implements ActionListener{
         telefonoCelularJ=new JTextField("");
         correoJ=new JTextField("");
         //COLORES
-        fechaJ.setBackground(colorTextFields);
+        /*fechaJ.setBackground(colorTextFields);
         horaJ.setBackground(colorTextFields);
         nombreJ.setBackground(colorTextFields);
         apellidoJ.setBackground(colorTextFields);
@@ -220,12 +264,7 @@ public class FrameCita extends javax.swing.JFrame  implements ActionListener{
         telefonoCasaJ.setBackground(colorTextFields);
         telefonoCelularJ.setBackground(colorTextFields);
         correoJ.setBackground(colorTextFields);
-
-        
-        
-      
-        
-        
+*/
        //Añadir componentes al PanelDetalle
        GridBagConstraints constraints = new GridBagConstraints();
        
@@ -465,51 +504,72 @@ public class FrameCita extends javax.swing.JFrame  implements ActionListener{
         
         
         dibujarPanelCita(medico);//Dibuja la "libreta" de las citas
-        
-        
-        
-        
-        
-        
-        
-        
-        
+  
         
         /////// fin para ENERO
         
-        
-        
-        
-        
-        
-        
-        
-        
+  
         jCalendar1.getDayChooser().addDateEvaluator(new DJFechasEspInv());//Pinta las Fechas ocupadas en rojo
-        setCitas();
         jCalendar1.addPropertyChangeListener("calendar", new PropertyChangeListener() {
             
             @Override
             public void propertyChange(PropertyChangeEvent evt) {
-                setCitas();
+                try {
+                    try {
+                        setCitas();
+                    } catch (ClientProtocolException ex) {
+                        Logger.getLogger(FrameCita.class.getName()).log(Level.SEVERE, null, ex);
+                    } catch (ParseException ex) {
+                        Logger.getLogger(FrameCita.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                } catch (IOException ex) {
+                    Logger.getLogger(FrameCita.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (JSONException ex) {
+                    Logger.getLogger(FrameCita.class.getName()).log(Level.SEVERE, null, ex);
+                }
             }
         });
         
     }
     
-    public void setCitas(){
+    
+    private void disenoLabel(JLabel actual){
+        actual.setFont(font);
+    }
+    
+    
+    
+       private void disenoBotones(JButton actual){
+       actual.setBackground(colorBotones);
+       font  = font.deriveFont(Font.TYPE1_FONT, 13);
+       actual.setFont(font);
+       actual.setBorderPainted(false);
+       actual.setFocusPainted(false);
+        //actual.setContentAreaFilled(false);
+        
+       actual.setOpaque(false);
+   }
+    
+    public void setCitas() throws IOException, ClientProtocolException, JSONException, ParseException{
+        
+        JSONArray citasporfecha;
+        JSONArray pacienteporid;
+        JSONObject paciente;
         jCalendar1.setTodayButtonVisible(false);  
         jCalendar1.setForeground(Color.BLUE);//Pinta todas las fechas en azul, las que estan ocupadas se pintaran de rojo abajo
         jCalendar1.getDayChooser().addDateEvaluator(new DJFechasEspInv());//Pinta las Fechas ocupadas en rojo
-        jCalendar1.repaint();
-        jCalendar1.revalidate();
         BorrarTextFields();
         PanelCita.removeAll();
         PanelCita.revalidate();
         PanelCita.repaint();
         PanelCita.setLayout(new GridBagLayout());
-        SimpleDateFormat formato = new SimpleDateFormat("dd/MM/yyyy");
+        SimpleDateFormat formato = new SimpleDateFormat("yyyy-MM-dd");
         FechaLbl.setText(formato.format(jCalendar1.getDate()));
+         dibujarPanelCita(medico);//Dibuja la "libreta" de las citas
+               
+        
+        font=font  = font.deriveFont(Font.BOLD, 17);
+        disenoLabel(FechaLbl);
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 0;
@@ -520,10 +580,9 @@ public class FrameCita extends javax.swing.JFrame  implements ActionListener{
         gbc.anchor = GridBagConstraints.NORTH;
         gbc.fill = GridBagConstraints.NONE;
         PanelCita.add(FechaLbl,gbc);
-
-        if (formato.format(jCalendar1.getDate()).equals("11/12/2015") ){
-            Citas citas [] = new Citas [5];
-            System.out.println("Entre al set");
+        //Aqui se busca esta fecha (jCalendar1.getDate()) en la base de datos y se traen las citas 
+        citasporfecha = rutasLeer.leer("http://localhost/API_Citas/public/Citas/porFecha/"+formato.format(jCalendar1.getDate()));
+        
             gbc.gridx = 0;
             gbc.gridwidth = 1;
             gbc.gridheight = 1;
@@ -531,11 +590,23 @@ public class FrameCita extends javax.swing.JFrame  implements ActionListener{
             gbc.weighty = 1.0;
             gbc.anchor = GridBagConstraints.NORTHWEST;
             gbc.fill = GridBagConstraints.BOTH;
-
-            for (int i = 0;i<3;i++) {  
+            int total = 0;   
+            for (int i = 0;i<citasporfecha.length();i++) {  
+                JSONObject obj = (JSONObject)citasporfecha.get(i);
+                System.out.println("ENTRE EN EL FOR " + i + ": "+ obj.toString());
                 
+                for (int j = 0 ; j < citas.length ; j++){
+                   
+                    if(citas[j].getHora().equals(obj.get("hora"))){
+                        pacienteporid = rutasLeer.leer("http://localhost/API_Citas/public/Pacientes/porId/"+obj.get("paciente"));
+                        paciente = (JSONObject) pacienteporid.get(0);
+                        citas[j].setText(citas[j].getText()+" "+obj.get("paciente")+ " "+ paciente.get("cedula"));
+                        total++;
+                    }
+                }
+                //if(citas [i].getHora() == citasporfecha.get("id"))
                 System.out.println("voy a agregar las citas");
-                citas [i] = new Citas (i);  
+                //citas [i] = new Citas (i);  
                 citas [i].setBorder(BorderFactory.createLineBorder(Color.black));
                 citas [i].setOpaque(true); 
                 
@@ -565,53 +636,15 @@ public class FrameCita extends javax.swing.JFrame  implements ActionListener{
 
 
             }  
-
-            citas [0].setBackground(colorBackGround);
-            citas [1].setBackground(colorBackGround);
-            citas [2].setBackground(colorBackGround);
-            PanelCita.revalidate();
-            PanelCita.repaint();
-
-
-        }else{
-
-            
-           
-
-            for (int i = 0;i<3;i++) {  
-                System.out.println("voy a agregar las citas");  
-                //gbc.anchor = GridBagConstraints.NORTHWEST;
-                gbc.fill = GridBagConstraints.BOTH;
-                label [i].setText(label[i].getText() +": "+ "Agregar paciente");
-                label [i].setBorder(BorderFactory.createLineBorder(Color.black));
-                label [i].setOpaque(true);
-
-                label [i].addMouseListener(new MouseListener() {              
-                    @Override
-                    public void mousePressed(MouseEvent e) {}
-                    @Override
-                    public void mouseReleased(MouseEvent e) {}
-                    @Override
-                    public void mouseEntered(MouseEvent e) {}
-                    @Override
-                    public void mouseExited(MouseEvent e) {}
-
-                    @Override
-                    public void mouseClicked(MouseEvent e) {
-                        acciones(null);
-                    }
-                });
-                
-                gbc.gridy = i+1;
-                PanelCita.add (label[i],gbc);  
-            } 
+            if(total==medico.getCitasPorDia()){
+                JSONObject fecha = new org.json.JSONObject();
+                fecha.put("diasOcupados", formato.format(jCalendar1.getDate()));
+                rutasAdd.add("http://localhost/API_Citas/public/Diasocupados/insertarfecha", fecha);
+                jCalendar1.getDayChooser().addDateEvaluator(new DJFechasEspInv());//Pinta las Fechas ocupadas en rojo   
+            }
           
             PanelCita.revalidate();
             PanelCita.repaint();
-            dibujarPanelCita(medico);//Dibuja la "libreta" de las citas
-             
-        }
-             dibujarPanelCita(medico);//Dibuja la "libreta" de las citas
     }
     
     
@@ -636,7 +669,7 @@ public class FrameCita extends javax.swing.JFrame  implements ActionListener{
         gbc.anchor = GridBagConstraints.NORTHWEST;
         gbc.fill = GridBagConstraints.BOTH;
         
-        for (int i = 0;i< medico.cantidadDeCitasxDia(10, 30) ;i++) {
+        for (int i = 0;i< medico.getCitasPorDia() ;i++) {
             minActual+=medico.getMinutosDeAtencionxPaciente();
             if(minActual==60){
                 horaActual+=1;
@@ -644,11 +677,25 @@ public class FrameCita extends javax.swing.JFrame  implements ActionListener{
             }
             gbc.gridy = i+1;
             System.out.print(String.format("%02d",horaInicio));
-            label [i]=new JLabel ("" +String.format("%02d",horaInicio)+":" + String.format("%02d",minInicio)  + " - " + String.format("%02d",horaActual) + ":" + String.format("%02d",minActual));
-            label [i].setBorder(BorderFactory.createLineBorder(Color.black));
-            label [i].setOpaque(true);
-            
-            PanelCita.add (label[i] ,gbc);
+            citas [i]=new Citas (("" +String.format("%02d",horaInicio)+":" + String.format("%02d",minInicio)  + " - " + String.format("%02d",horaActual) + ":" + String.format("%02d",minActual)),("" +String.format("%02d",horaInicio)+":" + String.format("%02d",minInicio) + ":" +  String.format("%02d",0)));
+            citas [i].setBorder(BorderFactory.createLineBorder(Color.black));
+            citas [i].setOpaque(true);
+            citas [i].addMouseListener(new MouseListener() {              
+                    @Override
+                    public void mousePressed(MouseEvent e) {}
+                    @Override
+                    public void mouseReleased(MouseEvent e) {}
+                    @Override
+                    public void mouseEntered(MouseEvent e) {}
+                    @Override
+                    public void mouseExited(MouseEvent e) {}
+
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
+                        acciones(null);
+                    }
+                });
+            PanelCita.add (citas[i] ,gbc);
             System.out.print(i);
             horaInicio=horaActual;
             minInicio=minActual;
@@ -662,7 +709,7 @@ public class FrameCita extends javax.swing.JFrame  implements ActionListener{
         public void actionPerformed(ActionEvent e) {
         
         if (e.getSource()==agregarB) {
-            
+            /*
             //Cita
             JSONObject cita=new JSONObject();
             cita.put("fecha",fechaJ.getText().toString());
@@ -684,6 +731,7 @@ public class FrameCita extends javax.swing.JFrame  implements ActionListener{
             paciente.put("tlfncasa",telefonoCasaJ.getText().toString());
             paciente.put("tlfncelular",telefonoCelularJ.getText().toString());
             System.out.print(paciente);
+            */
             return;
             
         }
@@ -697,14 +745,36 @@ public class FrameCita extends javax.swing.JFrame  implements ActionListener{
             return;
         }
         if (e.getSource()==atrasB) {
+           
+ 
             
             
         }
         if (e.getSource()==buscarB) {
-            apellidoJ.setText("Cantidad de citas por dia: "+medico.cantidadDeCitasxDia(10, 30));
+            
+            
+            
+             String[] opciones = {"Aceptar" };
+            int opcion = JOptionPane.showOptionDialog(
+                               null                             //componente
+                             , "Cedula no pertenece a ningun paciente registrado"            // Mensaje
+                             , "Paciente no encontrado"         // Titulo en la barra del cuadro
+                             , JOptionPane.DEFAULT_OPTION       // Tipo de opciones
+                             , JOptionPane.WARNING_MESSAGE  // Tipo de mensaje (icono)
+                             , null                             // Icono (ninguno)
+                             , opciones                         // Opciones personalizadas
+                             , null                             // Opcion por defecto
+                           );
             
         }
+        
+        
+        
+        
     }
+        
+        
+        
     
         
     private void BorrarTextFields(){
@@ -721,12 +791,10 @@ public class FrameCita extends javax.swing.JFrame  implements ActionListener{
             motivosTA.setText("");
         
     }
-
    
-        
      private void acciones(Citas cita){
         
-         BorrarTextFields();
+        BorrarTextFields();
         if(cita==null){
             atrasB.setEnabled(true);
             buscarB.setEnabled(true);
@@ -908,7 +976,13 @@ public class FrameCita extends javax.swing.JFrame  implements ActionListener{
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new FrameCita().setVisible(true);
+                try {
+                    new FrameCita().setVisible(true);
+                } catch (IOException ex) {
+                    Logger.getLogger(FrameCita.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (JSONException ex) {
+                    Logger.getLogger(FrameCita.class.getName()).log(Level.SEVERE, null, ex);
+                }
             }
         });
     }

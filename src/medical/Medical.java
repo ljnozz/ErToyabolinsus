@@ -6,10 +6,14 @@
 package medical;
 
 import Citas.FrameCita;
+import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
+import org.apache.http.client.ClientProtocolException;
+import org.json.JSONException;
+import javax.swing.JOptionPane;
 
 /**
  *
@@ -24,7 +28,7 @@ public class Medical {
 
     
     
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException, ClientProtocolException, JSONException {
         // TODO code application logic here
          
              try {

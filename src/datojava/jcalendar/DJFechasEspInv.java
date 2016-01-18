@@ -16,9 +16,6 @@ import java.util.Date;
 import com.toedter.calendar.IDateEvaluator;  
 import java.io.IOException;
 import java.text.ParseException;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.http.client.ClientProtocolException;
 import org.json.JSONException;
   

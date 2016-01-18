@@ -12,7 +12,6 @@ package datojava.jcalendar;
 import java.awt.Color;  
 import java.util.Calendar;  
 import java.util.Date;  
-  
 import com.toedter.calendar.IDateEvaluator;  
 import java.io.IOException;
 import java.text.ParseException;

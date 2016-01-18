@@ -120,7 +120,7 @@ public class FrameCita extends javax.swing.JFrame  implements ActionListener{
     ////////////// ELEMENTOS DEL PANEL DETALLE
     
     
-    public FrameCita() throws ClientProtocolException, IOException, JSONException {
+    public FrameCita() throws ClientProtocolException, IOException, JSONException, ParseException, java.text.ParseException {
         
         initComponents();
         this.getContentPane().setLayout(new GridBagLayout());
@@ -136,7 +136,7 @@ public class FrameCita extends javax.swing.JFrame  implements ActionListener{
             Logger.getLogger(FrameCita.class.getName()).log(Level.SEVERE, null, ex);
         }
         
-        
+        setTitle("Citas");
         
         GridBagConstraints gbc = new GridBagConstraints();
         
@@ -502,14 +502,14 @@ public class FrameCita extends javax.swing.JFrame  implements ActionListener{
         
   
         
-        
+        setCitas();
         dibujarPanelCita(medico);//Dibuja la "libreta" de las citas
   
         
         /////// fin para ENERO
         
   
-        jCalendar1.getDayChooser().addDateEvaluator(new DJFechasEspInv());//Pinta las Fechas ocupadas en rojo
+        //jCalendar1.getDayChooser().addDateEvaluator(new DJFechasEspInv());//Pinta las Fechas ocupadas en rojo
         jCalendar1.addPropertyChangeListener("calendar", new PropertyChangeListener() {
             
             @Override
@@ -520,6 +520,8 @@ public class FrameCita extends javax.swing.JFrame  implements ActionListener{
                     } catch (ClientProtocolException ex) {
                         Logger.getLogger(FrameCita.class.getName()).log(Level.SEVERE, null, ex);
                     } catch (ParseException ex) {
+                        Logger.getLogger(FrameCita.class.getName()).log(Level.SEVERE, null, ex);
+                    } catch (java.text.ParseException ex) {
                         Logger.getLogger(FrameCita.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 } catch (IOException ex) {
@@ -550,7 +552,7 @@ public class FrameCita extends javax.swing.JFrame  implements ActionListener{
        actual.setOpaque(false);
    }
     
-    public void setCitas() throws IOException, ClientProtocolException, JSONException, ParseException{
+    public void setCitas() throws IOException, ClientProtocolException, JSONException, ParseException, java.text.ParseException{
         
         JSONArray citasporfecha;
         JSONArray pacienteporid;
@@ -622,6 +624,7 @@ public class FrameCita extends javax.swing.JFrame  implements ActionListener{
 
                     @Override
                     public void mouseClicked(MouseEvent e) {
+                        
                         Citas seleccion = new Citas();
                         seleccion = (Citas) e.getComponent();
                         System.out.println("Label  clickeado" +  seleccion.getText() );
@@ -639,10 +642,12 @@ public class FrameCita extends javax.swing.JFrame  implements ActionListener{
             if(total==medico.getCitasPorDia()){
                 JSONObject fecha = new org.json.JSONObject();
                 fecha.put("diasOcupados", formato.format(jCalendar1.getDate()));
-                rutasAdd.add("http://localhost/API_Citas/public/Diasocupados/insertarfecha", fecha);
-                jCalendar1.getDayChooser().addDateEvaluator(new DJFechasEspInv());//Pinta las Fechas ocupadas en rojo   
+                //rutasAdd.add("http://localhost/API_Citas/public/Diasocupados/insertarfecha", fecha);
+                jCalendar1.getDayChooser().addDateEvaluator(new DJFechasEspInv());//Pinta las Fechas ocupadas en rojo 
             }
-          
+            jCalendar1.setDate(jCalendar1.getDate());
+            jCalendar1.revalidate();
+            jCalendar1.repaint();
             PanelCita.revalidate();
             PanelCita.repaint();
     }
@@ -692,6 +697,8 @@ public class FrameCita extends javax.swing.JFrame  implements ActionListener{
 
                     @Override
                     public void mouseClicked(MouseEvent e) {
+                        fechaJ.setText(jCalendar1.getDate().toString());
+                        fechaJ.setEnabled(true);
                         acciones(null);
                     }
                 });
@@ -709,29 +716,42 @@ public class FrameCita extends javax.swing.JFrame  implements ActionListener{
         public void actionPerformed(ActionEvent e) {
         
         if (e.getSource()==agregarB) {
-            /*
-            //Cita
-            JSONObject cita=new JSONObject();
-            cita.put("fecha",fechaJ.getText().toString());
-            cita.put("hora",horaJ.getText().toString());
-            cita.put("paciente",cedulaJ.getText().toString());
-            cita.put("medicos","1");
-            cita.put("tratamiento","tratamiento");
-            cita.put("diagnostico","diagnostico");
-            cita.put("motivo", motivosTA.getText().toString());
-            System.out.print(cita);
-            
-            //Paciente
-            JSONObject paciente=new JSONObject();
-            paciente.put("cedula",cedulaJ.getText().toString());
-            paciente.put("nombre",nombreJ.getText().toString());
-            paciente.put("apellido",apellidoJ.getText().toString());
-            paciente.put("direccion",direccionJ.getText().toString());
-            paciente.put("correo",correoJ.getText().toString());
-            paciente.put("tlfncasa",telefonoCasaJ.getText().toString());
-            paciente.put("tlfncelular",telefonoCelularJ.getText().toString());
-            System.out.print(paciente);
-            */
+            try {
+                
+                //Cita
+                JSONObject cita=new JSONObject();
+                cita.put("fecha",fechaJ.getText());
+                cita.put("hora",horaJ.getText());
+                cita.put("paciente",3);
+                cita.put("medicos","1");
+                cita.put("tratamiento","tratamiento");
+                cita.put("diagnostico","diagnostico");
+                cita.put("motivo", motivosTA.getText());
+                System.out.print(cita);
+                
+                //Paciente
+                JSONObject paciente=new JSONObject();
+                paciente.put("cedula",cedulaJ.getText());
+                paciente.put("nombre",nombreJ.getText());
+                paciente.put("apellido",apellidoJ.getText());
+                paciente.put("direccion",direccionJ.getText());
+                paciente.put("correo",correoJ.getText());
+                paciente.put("tlfncasa",telefonoCasaJ.getText());
+                paciente.put("tlfncelular",telefonoCelularJ.getText());
+                System.out.print(paciente);
+                //rutasAdd.add("http://localhost/API_Citas/public/Pacientes/insertarPaciente", paciente);
+                rutasAdd.add("http://localhost/API_Citas/public/Citas/insertarCita", cita);
+                
+                setCitas();
+            } catch (IOException ex) {
+                Logger.getLogger(FrameCita.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (JSONException ex) {
+                Logger.getLogger(FrameCita.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (ParseException ex) {
+                Logger.getLogger(FrameCita.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (java.text.ParseException ex) {
+                Logger.getLogger(FrameCita.class.getName()).log(Level.SEVERE, null, ex);
+            }
             return;
             
         }
@@ -801,8 +821,8 @@ public class FrameCita extends javax.swing.JFrame  implements ActionListener{
             modificarB.setEnabled(false);
             agregarB.setEnabled(true);
             eliminarB.setEnabled(false);
-            fechaJ.setEditable(true);
-            horaJ.setEditable(true);
+            fechaJ.setEditable(false);
+            horaJ.setEditable(false);
             nombreJ.setEditable(true);
             apellidoJ.setEditable(true);
             cedulaJ.setEditable(true);
@@ -811,6 +831,7 @@ public class FrameCita extends javax.swing.JFrame  implements ActionListener{
             telefonoCelularJ.setEditable(true);
             correoJ.setEditable(true); 
             motivosTA.setEditable(true);
+            
         }else{
             atrasB.setEnabled(false);
             buscarB.setEnabled(false);
@@ -981,6 +1002,10 @@ public class FrameCita extends javax.swing.JFrame  implements ActionListener{
                 } catch (IOException ex) {
                     Logger.getLogger(FrameCita.class.getName()).log(Level.SEVERE, null, ex);
                 } catch (JSONException ex) {
+                    Logger.getLogger(FrameCita.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (ParseException ex) {
+                    Logger.getLogger(FrameCita.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (java.text.ParseException ex) {
                     Logger.getLogger(FrameCita.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
